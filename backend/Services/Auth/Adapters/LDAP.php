@@ -57,7 +57,7 @@ class LDAP implements Service, AuthInterface
                 $this->ldap_userFieldMapping = $config['ldap_userFieldMapping'];
         }else {
                 @ldap_close($connect);
-                throw new \Exception('could not connect to domain');
+                throw new \Exception('LDAP URI ' . $config['ldap_server'] . ' is malformed.');
          }
 
         @ldap_close($connect);
@@ -174,14 +174,19 @@ class LDAP implements Service, AuthInterface
         return $new;
     }
 
+
     protected function getUsers(): array
     {
             $ldapConn = @ldap_connect($this->ldap_server);
-            if (!$ldapConn) throw new \Exception('Cannot Connect to LDAP server');
+            if (!$ldapConn) throw new \Exception('LDAP URI ' . $config['ldap_server'] . ' is malformed.');
             @ldap_set_option($ldapConn, LDAP_OPT_PROTOCOL_VERSION, 3);
 
             $ldapBind = @ldap_bind($ldapConn, $this->ldap_bindDN,$this->ldap_bindPass);
-            if (!$ldapBind) throw new \Exception('Cannot Bind to LDAP server: Wrong credentials?');
+	    if (!$ldapBind) {
+		   $ldap_errno = ldap_errno($ldapConn);
+		   $ldap_error = ldap_error($ldapConn);
+		   throw new \Exception('Error binding to server - ' . $ldap_errno . ': ' . $ldap_error);
+	    }
 
             // search the LDAP server for users
             $ldapSearch  = @ldap_search($ldapConn, $this->ldap_baseDN, $this->ldap_filter, $this->ldap_attributes);
