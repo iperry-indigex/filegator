@@ -15,6 +15,8 @@ use Filegator\Services\Auth\UsersCollection;
 use Filegator\Services\Service;
 use Filegator\Services\Session\SessionStorageInterface as Session;
 
+ldap_set_option(NULL, LDAP_OPT_DEBUG_LEVEL, 7);
+
 /**
  * @codeCoverageIgnore
  */
